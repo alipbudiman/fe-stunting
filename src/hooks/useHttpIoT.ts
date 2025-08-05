@@ -46,12 +46,27 @@ export function useHttpIoT(options: UseHttpIoTOptions) {
       
       if (result.success && result.data) {
         const iotData: IoTData = result.data;
-        setData(iotData);
+        
+        // Only update state if data has actually changed or this is first fetch
+        const hasDataChanged = !data || 
+          data.bb !== iotData.bb || 
+          data.tb !== iotData.tb || 
+          data.status !== iotData.status;
+
+        if (hasDataChanged) {
+          setData(iotData);
+          log('Data updated:', iotData);
+        }
+        
         updateStatus({ 
           hasData: iotData.status === 'updated',
           error: undefined 
         });
-        log('Data received:', iotData);
+        
+        // Log less frequently for no_data to avoid spam
+        if (iotData.status !== 'no_data' || !data) {
+          log('Data fetched:', iotData);
+        }
       } else {
         log('No data available from backend');
         updateStatus({ hasData: false });
@@ -64,7 +79,7 @@ export function useHttpIoT(options: UseHttpIoTOptions) {
         hasData: false 
       });
     }
-  }, [deviceId, log, updateStatus]);
+  }, [deviceId, log, updateStatus, data]);
 
   const startPolling = useCallback(() => {
     if (isPollingRef.current) {

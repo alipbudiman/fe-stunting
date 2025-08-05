@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      // Fetch data from backend (assuming there's an endpoint to get current IoT data)
-      const response = await fetch(`${backendUrl}/iot-data/${deviceId}`, {
+      // Try to fetch specific device data from backend
+      const response = await fetch(`${backendUrl}/devices/${deviceId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -34,8 +34,9 @@ export async function GET(request: NextRequest) {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        // If 404, it might mean no data yet
+        // If 404, device not found, return no_data status
         if (response.status === 404) {
+          console.log(`[API] Device ${deviceId} not found, returning no_data`);
           return NextResponse.json({
             success: true,
             data: {
@@ -43,7 +44,8 @@ export async function GET(request: NextRequest) {
               tb: 0,
               bb: 0,
               status: 'no_data' as const,
-              timestamp: Date.now()
+              timestamp: Date.now(),
+              message: `No data available for device ${deviceId}`
             }
           });
         }
@@ -53,11 +55,25 @@ export async function GET(request: NextRequest) {
 
       const result = await response.json();
       
-      console.log('[API] IoT data fetched successfully');
-      return NextResponse.json({
-        success: true,
-        data: result
-      });
+      // Backend returns: { device_id, data: { tb, bb, status, last_updated }, connections }
+      if (result.data) {
+        const iotData = {
+          did: deviceId,
+          tb: result.data.tb || 0,
+          bb: result.data.bb || 0,
+          status: result.data.status || 'no_data',
+          timestamp: result.data.last_updated || Date.now(),
+          connections: result.connections || 0
+        };
+        
+        console.log('[API] IoT data fetched successfully:', iotData);
+        return NextResponse.json({
+          success: true,
+          data: iotData
+        });
+      } else {
+        throw new Error('Invalid data format from backend');
+      }
 
     } catch (error) {
       console.error('[API] Failed to fetch IoT data:', error);
@@ -70,13 +86,14 @@ export async function GET(request: NextRequest) {
           tb: 0,
           bb: 0,
           status: 'no_data' as const,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          message: `Error fetching data for device ${deviceId}: ${error instanceof Error ? error.message : 'Unknown error'}`
         }
       });
     }
 
   } catch (error) {
-    console.error('[API] IoT data error:', error);
+    console.error('[API] IoT data API error:', error);
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
       { status: 500 }
