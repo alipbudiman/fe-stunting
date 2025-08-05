@@ -44,4 +44,5 @@ export interface ConnectionStatus {
   hasData: boolean;
   lastConnected?: Date;
   reconnectAttempts: number;
+  error?: string;
 }

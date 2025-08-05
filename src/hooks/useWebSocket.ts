@@ -62,10 +62,15 @@ export const useWebSocket = ({
     try {
       updateStatus({ isConnecting: true });
       
-      const wsProtocol = serverUrl.startsWith('https') ? 'wss' : 'ws';
+      // If the current page is served over HTTPS, force WSS even if API URL is HTTP
+      const isPageHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      const forceWss = process.env.NEXT_PUBLIC_FORCE_WSS === 'true';
+      const wsProtocol = (serverUrl.startsWith('https') || (isPageHttps && forceWss)) ? 'wss' : 'ws';
       const cleanUrl = serverUrl.replace(/^https?:\/\//, '');
       const wsUrl = `${wsProtocol}://${cleanUrl}/ws/data/${deviceId}`;
       
+      log(`Page protocol: ${typeof window !== 'undefined' ? window.location.protocol : 'unknown'}`);
+      log(`Force WSS: ${forceWss}`);
       log(`Connecting to: ${wsUrl}`);
       
       wsRef.current = new WebSocket(wsUrl);
@@ -77,6 +82,7 @@ export const useWebSocket = ({
           isConnecting: false,
           lastConnected: new Date(),
           reconnectAttempts: 0,
+          error: undefined, // Clear any previous errors
         });
         clearReconnectTimeout();
       };
@@ -122,7 +128,13 @@ export const useWebSocket = ({
 
       wsRef.current.onerror = (error) => {
         log(`WebSocket error: ${error}`);
-        updateStatus({ isConnecting: false });
+        const errorMessage = isPageHttps && wsProtocol === 'ws' 
+          ? 'Mixed Content Error: HTTPS page cannot connect to insecure WebSocket (WS). Server must support WSS.'
+          : 'WebSocket connection error';
+        updateStatus({ 
+          isConnecting: false,
+          error: errorMessage
+        });
       };
 
     } catch (error) {

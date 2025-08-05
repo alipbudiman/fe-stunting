@@ -256,12 +256,21 @@ export default function StuntingPredictionSystem() {
         <StepIndicator />
 
         {/* Error Display */}
-        {error && (
+        {(error || status.error) && (
           <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-lg p-4 shadow-md">
             <div className="flex items-center gap-3 text-red-800">
               <span className="text-xl">❌</span>
-              <span className="font-semibold">{error}</span>
+              <span className="font-semibold">{error || status.error}</span>
             </div>
+            {status.error && status.error.includes('Mixed Content') && (
+              <div className="mt-3 text-sm text-red-700 bg-red-100 p-3 rounded-lg">
+                <p className="font-semibold">💡 Solusi:</p>
+                <ul className="list-disc list-inside mt-1 space-y-1">
+                  <li>Akses frontend melalui HTTP: <code className="bg-red-200 px-1 rounded">http://localhost:3000</code></li>
+                  <li>Atau konfigurasi backend untuk mendukung HTTPS/WSS</li>
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
