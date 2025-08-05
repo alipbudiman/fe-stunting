@@ -2,13 +2,18 @@
 
 import { useState, useMemo } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useHttpIoT } from '@/hooks/useHttpIoT';
 import { ChildData, PredictionResult, ApiResponse, ConnectionConfig } from '@/types/prediction';
 
 // Define pagination steps
 type PageStep = 'connection' | 'child-data' | 'measurement' | 'result';
 
+// Connection mode
+type ConnectionMode = 'websocket' | 'http';
+
 export default function StuntingPredictionSystem() {
   const [currentStep, setCurrentStep] = useState<PageStep>('connection');
+  const [connectionMode, setConnectionMode] = useState<ConnectionMode>('http'); // Default to HTTP for better compatibility
   
   const [config, setConfig] = useState<ConnectionConfig>({
     serverUrl: (process.env.NEXT_PUBLIC_API_URL || 'localhost:5000').replace(/^https?:\/\//, ''),
@@ -18,7 +23,7 @@ export default function StuntingPredictionSystem() {
   const [childData, setChildData] = useState<ChildData>({
     nama: '',
     tanggal_lahir: '',
-    jenis_kelamin: '' as ChildData['jenis_kelamin'],
+    jenis_kelamin: 'L', // Set default value instead of empty string
     bb_lahir: 0,
     tb_lahir: 0,
     berat: 0,
@@ -29,13 +34,25 @@ export default function StuntingPredictionSystem() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: iotData, status, connect, disconnect, reconnect } = useWebSocket({
+  // WebSocket connection (for real-time updates)
+  const websocketConnection = useWebSocket({
     serverUrl: config.serverUrl,
     deviceId: config.deviceId,
     autoReconnect: true,
     maxReconnectAttempts: 10,
     reconnectInterval: 3000,
   });
+
+  // HTTP polling connection (more reliable, goes through Next.js API)
+  const httpConnection = useHttpIoT({
+    deviceId: config.deviceId,
+    pollingInterval: 3000,
+    autoStart: false,
+  });
+
+  // Use the selected connection mode
+  const { data: iotData, status, connect, disconnect, reconnect } = 
+    connectionMode === 'websocket' ? websocketConnection : httpConnection;
 
   // Update child data when IoT data is received
   const updatedChildData = useMemo(() => {
@@ -54,7 +71,7 @@ export default function StuntingPredictionSystem() {
     return (
       childData.nama.trim() !== '' &&
       childData.tanggal_lahir !== '' &&
-      childData.jenis_kelamin !== '' &&
+      (childData.jenis_kelamin === 'L' || childData.jenis_kelamin === 'P') &&
       childData.bb_lahir > 0 &&
       childData.tb_lahir > 0
     );
@@ -96,17 +113,21 @@ export default function StuntingPredictionSystem() {
 
   const handleResetToStart = async () => {
     try {
-      // Call reset endpoint - fix the URL construction
-      const serverUrl = config.serverUrl.replace(/^https?:\/\//, '');
-      const httpProtocol = serverUrl.startsWith('localhost') || serverUrl.startsWith('127.0.0.1') ? 'http' : 'https';
-      const resetUrl = `${httpProtocol}://${serverUrl}/reset/${config.deviceId}`;
+      // Call Next.js API route instead of direct backend
+      const resetUrl = `/api/reset/${config.deviceId}`;
       
-      await fetch(resetUrl, {
+      const response = await fetch(resetUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         }
       });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'Reset failed');
+      }
       
       // Reset all states
       setCurrentStep('connection');
@@ -115,7 +136,7 @@ export default function StuntingPredictionSystem() {
       setChildData({
         nama: '',
         tanggal_lahir: '',
-        jenis_kelamin: '' as ChildData['jenis_kelamin'],
+        jenis_kelamin: 'L', // Reset to default
         bb_lahir: 0,
         tb_lahir: 0,
         berat: 0,
@@ -126,6 +147,7 @@ export default function StuntingPredictionSystem() {
       disconnect();
     } catch (err) {
       console.error('Error resetting:', err);
+      setError(err instanceof Error ? err.message : 'Reset failed');
     }
   };
 
@@ -137,12 +159,10 @@ export default function StuntingPredictionSystem() {
     setPrediction(null);
 
     try {
-      // Fix URL construction - remove protocol first, then add correct one
-      const serverUrl = config.serverUrl.replace(/^https?:\/\//, '');
-      const httpProtocol = serverUrl.startsWith('localhost') || serverUrl.startsWith('127.0.0.1') ? 'http' : 'https';
-      const apiUrl = `${httpProtocol}://${serverUrl}/predict`;
+      // Call Next.js API route instead of direct backend
+      const apiUrl = '/api/predict';
 
-      console.log('Making prediction request to:', apiUrl); // Debug log
+      console.log('[FE] Making prediction request to Next.js API:', apiUrl);
 
       const requestData = {
         nama: updatedChildData.nama,
@@ -171,7 +191,7 @@ export default function StuntingPredictionSystem() {
         throw new Error(result.message || 'Prediction failed');
       }
     } catch (err) {
-      console.error('Prediction error:', err); // Debug log
+      console.error('[FE] Prediction error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
@@ -284,6 +304,37 @@ export default function StuntingPredictionSystem() {
               <h2 className="text-lg sm:text-xl font-bold text-gray-800">
                 Langkah 1: Koneksi IoT Device
               </h2>
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Metode Koneksi</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() => setConnectionMode('http')}
+                  className={`p-4 rounded-lg border-2 text-left transition-all ${
+                    connectionMode === 'http'
+                      ? 'border-blue-500 bg-blue-50 text-blue-800'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="font-semibold">🌐 HTTP Polling</div>
+                  <div className="text-sm mt-1">Via Next.js API (Recommended)</div>
+                </button>
+                <button
+                  onClick={() => setConnectionMode('websocket')}
+                  className={`p-4 rounded-lg border-2 text-left transition-all ${
+                    connectionMode === 'websocket'
+                      ? 'border-blue-500 bg-blue-50 text-blue-800'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="font-semibold">⚡ WebSocket</div>
+                  <div className="text-sm mt-1">Direct connection (Real-time)</div>
+                </button>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                HTTP Polling menggunakan Next.js API routes untuk komunikasi yang lebih stabil dan aman.
+              </p>
             </div>
             
             <div className="mb-6">
