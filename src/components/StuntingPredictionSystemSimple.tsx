@@ -34,38 +34,6 @@ export default function StuntingPredictionSystem() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Simulate IoT data for testing
-  const simulateIoTData = async () => {
-    try {
-      const randomWeight = (Math.random() * 20 + 10).toFixed(1); // 10-30 kg
-      const randomHeight = (Math.random() * 50 + 50).toFixed(1); // 50-100 cm
-      
-      const response = await fetch('/api/iot-send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          did: config.deviceId,
-          bb: parseFloat(randomWeight),
-          tb: parseFloat(randomHeight)
-        })
-      });
-
-      const result = await response.json();
-      
-      if (response.ok) {
-        console.log('[FE] IoT data simulation sent successfully:', result);
-      } else {
-        console.error('[FE] Failed to send IoT simulation:', result);
-        setError(result.message || 'Failed to simulate IoT data');
-      }
-    } catch (err) {
-      console.error('[FE] IoT simulation error:', err);
-      setError(err instanceof Error ? err.message : 'Simulation failed');
-    }
-  };
-
   // WebSocket connection (for real-time updates)
   const websocketConnection = useWebSocket({
     serverUrl: config.serverUrl,
@@ -78,8 +46,9 @@ export default function StuntingPredictionSystem() {
   // HTTP polling connection (more reliable, goes through Next.js API)
   const httpConnection = useHttpIoT({
     deviceId: config.deviceId,
-    pollingInterval: 3000,
+    pollingInterval: 2000, // Poll every 2 seconds for real IoT data
     autoStart: false,
+    maxEmptyPolls: 50, // Allow more empty polls before slowing down
   });
 
   // Use the selected connection mode
@@ -123,24 +92,6 @@ export default function StuntingPredictionSystem() {
   const handleConnect = () => {
     console.log('[StuntingPrediction] Manual connect button clicked');
     connect();
-  };
-
-  const handleConnectionComplete = () => {
-    if (status.isConnected) {
-      setCurrentStep('child-data');
-    }
-  };
-
-  const handleChildDataComplete = () => {
-    if (isChildDataComplete) {
-      setCurrentStep('measurement');
-    }
-  };
-
-  const handleMeasurementComplete = () => {
-    if (canPredict) {
-      handlePredict();
-    }
   };
 
   const handleResetToStart = async () => {
@@ -625,40 +576,21 @@ export default function StuntingPredictionSystem() {
                     </span>
                   </div>
                 </div>
-                {/* IoT Simulation Button for Testing */}
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={simulateIoTData}
-                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-sm transition-colors shadow-md"
-                  >
-                    🧪 Simulasi Data IoT (Testing)
-                  </button>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Klik untuk mensimulasikan pengiriman data dari IoT device
-                  </p>
-                </div>
               </div>
             )}
 
-            {/* IoT Simulation for Testing when no data */}
+            {/* Waiting for IoT Data */}
             {!iotData && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200 shadow-sm">
+              <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border-2 border-orange-200 shadow-sm">
                 <h4 className="font-bold mb-3 flex items-center gap-2 text-gray-800">
-                  🧪 Testing IoT Connection
+                  ⏳ Menunggu Data IoT
                 </h4>
-                <p className="text-sm text-gray-700 mb-3">
-                  Belum ada data dari IoT device. Klik tombol di bawah untuk mensimulasikan pengiriman data:
+                <p className="text-sm text-gray-700 mb-2">
+                  Sistem sedang memeriksa data dari IoT device secara berkala...
                 </p>
-                <div className="text-center">
-                  <button
-                    onClick={simulateIoTData}
-                    className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-sm transition-colors shadow-md"
-                  >
-                    🧪 Kirim Data IoT Simulasi
-                  </button>
-                  <p className="text-xs text-gray-600 mt-2">
-                    Data simulasi: Berat (10-30kg), Tinggi (50-100cm)
-                  </p>
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                  <span>Polling setiap 2 detik untuk data baru dari IoT device</span>
                 </div>
               </div>
             )}
