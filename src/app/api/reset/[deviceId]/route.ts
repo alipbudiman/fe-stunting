@@ -3,10 +3,10 @@ import { getBackendUrl } from '@/lib/config';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { deviceId: string } }
+  context: { params: Promise<{ deviceId: string }> }
 ) {
   try {
-    const { deviceId } = params;
+    const { deviceId } = await context.params;
     
     if (!deviceId) {
       return NextResponse.json(
