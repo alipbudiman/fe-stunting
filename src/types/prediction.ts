@@ -25,6 +25,7 @@ export interface PredictionResult {
   zs_tbu?: number;  // Z-Score TB/U
   zs_bbu?: number;  // Z-Score BB/U
   zs_bbtb?: number; // Z-Score BB/TB
+  message?: string; // Pesan rekomendasi dari backend
 }
 
 export interface ApiResponse {

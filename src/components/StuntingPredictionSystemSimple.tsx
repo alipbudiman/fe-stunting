@@ -168,6 +168,10 @@ export default function StuntingPredictionSystem() {
       const result: ApiResponse = await response.json();
 
       if (response.ok) {
+        console.log('[FE] Prediction response received:', result);
+        console.log('[FE] Prediction data:', result.data);
+        console.log('[FE] Prediction message:', result.data?.message);
+        
         setPrediction(result.data);
         setCurrentStep('result'); // Move to result step after successful prediction
       } else {
@@ -760,6 +764,26 @@ export default function StuntingPredictionSystem() {
                       <div className="text-xl font-mono font-bold text-blue-700">{prediction.zs_bbtb.toFixed(2)}</div>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Rekomendasi dari Backend */}
+            {prediction.message && (
+              <div className="mb-6 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-300 shadow-lg">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="p-2 bg-yellow-100 rounded-lg flex-shrink-0">
+                    💡
+                  </div>
+                  <div className="flex-grow">
+                    <h4 className="font-bold text-yellow-800 text-lg mb-2">Rekomendasi & Saran</h4>
+                    <div className="text-yellow-700 leading-relaxed whitespace-pre-line">
+                      {prediction.message}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-xs text-yellow-600 italic mt-3">
+                  * Rekomendasi ini berdasarkan analisis sistem ML. Konsultasikan dengan tenaga medis untuk penanganan lebih lanjut.
                 </div>
               </div>
             )}

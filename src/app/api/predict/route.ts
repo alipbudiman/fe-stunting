@@ -41,7 +41,18 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[API] Prediction successful');
-    return NextResponse.json(result);
+    
+    // Backend returns {data: PredictionResult, message: string}
+    // We need to merge the message into the data object for frontend consumption
+    if (result.data && result.message) {
+      result.data.message = result.message;
+    }
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Prediction completed successfully',
+      data: result.data
+    });
 
   } catch (error) {
     console.error('[API] Prediction error:', error);
