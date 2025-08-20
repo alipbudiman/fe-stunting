@@ -199,10 +199,10 @@ export default function StuntingPredictionSystem() {
   // Step indicator component
   const StepIndicator = () => {
     const steps = [
-      { id: 'connection', title: 'Koneksi IoT', icon: '📶' },
-      { id: 'child-data', title: 'Data Anak', icon: '👶' },
-      { id: 'measurement', title: 'Pengukuran', icon: '⚖️' },
-      { id: 'result', title: 'Hasil Prediksi', icon: '📊' }
+      { id: 'connection', title: 'Koneksi IoT', icon: '1' },
+      { id: 'child-data', title: 'Data Anak', icon: '2' },
+      { id: 'measurement', title: 'Pengukuran', icon: '3' },
+      { id: 'result', title: 'Hasil Prediksi', icon: '4' }
     ];
 
     const getStepIndex = (step: PageStep) => steps.findIndex(s => s.id === step);
@@ -248,7 +248,7 @@ export default function StuntingPredictionSystem() {
         <div className="text-center py-6 sm:py-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="p-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-full shadow-lg">
-              <span className="text-2xl text-white">🏥</span>
+              <div className="w-6 h-6 bg-white rounded-sm"></div>
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-700 to-green-700 bg-clip-text text-transparent">
               ML Stunting Prediction
@@ -271,7 +271,7 @@ export default function StuntingPredictionSystem() {
             </div>
             {status.error && status.error.includes('Mixed Content') && (
               <div className="mt-3 text-sm text-red-700 bg-red-100 p-3 rounded-lg">
-                <p className="font-semibold">💡 Solusi:</p>
+                <p className="font-semibold">Solusi:</p>
                 <ul className="list-disc list-inside mt-1 space-y-1">
                   <li>Akses frontend melalui HTTP: <code className="bg-red-200 px-1 rounded">http://localhost:3000</code></li>
                   <li>Atau konfigurasi backend untuk mendukung HTTPS/WSS</li>
@@ -285,8 +285,8 @@ export default function StuntingPredictionSystem() {
         {currentStep === 'connection' && (
           <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-blue-200 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                {status.isConnected ? '📶' : '📵'}
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-800">
                 Langkah 1: Koneksi IoT Device
@@ -350,8 +350,8 @@ export default function StuntingPredictionSystem() {
                   ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
                   : 'bg-red-100 text-red-800 border border-red-300'
               }`}>
-                {status.isConnecting ? '🔄 Menghubungkan...' : 
-                 status.isConnected ? '✅ Terhubung' : '❌ Terputus'}
+                {status.isConnecting ? 'Menghubungkan...' : 
+                 status.isConnected ? 'Terhubung' : 'Terputus'}
               </div>
               
               {status.reconnectAttempts > 0 && (
@@ -367,7 +367,7 @@ export default function StuntingPredictionSystem() {
                 disabled={status.isConnected || status.isConnecting}
                 className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold text-sm sm:text-base transition-colors shadow-md"
               >
-                {status.isConnecting ? '🔄 Menghubungkan...' : '📶 Hubungkan'}
+                {status.isConnecting ? 'Menghubungkan...' : 'Hubungkan'}
               </button>
               
               <button
@@ -382,7 +382,7 @@ export default function StuntingPredictionSystem() {
                 onClick={reconnect}
                 className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold text-sm sm:text-base transition-colors shadow-md"
               >
-                🔄 Reconnect
+                Reconnect
               </button>
             </div>
 
@@ -403,8 +403,8 @@ export default function StuntingPredictionSystem() {
         {currentStep === 'child-data' && (
           <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-green-200 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <div className="p-2 bg-green-100 rounded-lg">
-                👶
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-800">
                 Langkah 2: Data Anak
@@ -530,7 +530,9 @@ export default function StuntingPredictionSystem() {
             {!isChildDataComplete && (
               <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg">
                 <div className="flex items-center gap-3 text-yellow-800">
-                  <span className="text-xl">⚠️</span>
+                  <div className="w-5 h-5 border-2 border-yellow-500 rounded-full flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>
+                  </div>
                   <span className="font-semibold">
                     Mohon lengkapi semua data yang diperlukan untuk melanjutkan.
                   </span>
@@ -544,8 +546,8 @@ export default function StuntingPredictionSystem() {
         {currentStep === 'measurement' && (
           <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-purple-200 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                ⚖️
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-800">
                 Langkah 3: Pengukuran Saat Ini (IoT Device)
@@ -612,7 +614,10 @@ export default function StuntingPredictionSystem() {
                   aria-label="Berat Badan dalam kilogram"
                 />
                 <p className="text-xs text-gray-600 mt-2 font-medium">
-                  {status.hasData ? '✅ Data dari IoT device tersedia' : '⏳ Menunggu data IoT device...'}
+                  <span className={`inline-flex items-center gap-1 ${status.hasData ? 'text-green-600' : 'text-gray-500'}`}>
+                    <div className={`w-2 h-2 rounded-full ${status.hasData ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                    {status.hasData ? 'Data dari IoT device tersedia' : 'Menunggu data IoT device...'}
+                  </span>
                 </p>
               </div>
               
@@ -627,7 +632,10 @@ export default function StuntingPredictionSystem() {
                   placeholder="Menunggu data dari IoT device..."
                 />
                 <p className="text-xs text-gray-600 mt-2 font-medium">
-                  {status.hasData ? '✅ Data dari IoT device tersedia' : '⏳ Menunggu data IoT device...'}
+                  <span className={`inline-flex items-center gap-1 ${status.hasData ? 'text-green-600' : 'text-gray-500'}`}>
+                    <div className={`w-2 h-2 rounded-full ${status.hasData ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                    {status.hasData ? 'Data dari IoT device tersedia' : 'Menunggu data IoT device...'}
+                  </span>
                 </p>
               </div>
             </div>
@@ -649,14 +657,16 @@ export default function StuntingPredictionSystem() {
                     : 'bg-gray-400 cursor-not-allowed text-gray-700'
                 }`}
               >
-                {isLoading ? '🔄 Memproses Prediksi...' : '🔮 Prediksi Status Stunting'}
+                {isLoading ? 'Memproses Prediksi...' : 'Prediksi Status Stunting'}
               </button>
             </div>
 
             {!canPredict && !isLoading && (
               <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg">
                 <div className="flex items-center gap-3 text-yellow-800">
-                  <span className="text-xl">⚠️</span>
+                  <div className="w-5 h-5 border-2 border-yellow-500 rounded-full flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>
+                  </div>
                   <span className="font-semibold">
                     {!status.hasData 
                       ? 'Menunggu data dari IoT device untuk melanjutkan prediksi.'
@@ -672,8 +682,8 @@ export default function StuntingPredictionSystem() {
         {currentStep === 'result' && prediction && (
           <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border-2 border-green-300 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <div className="p-2 bg-green-100 rounded-lg">
-                📊
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-800">
                 Langkah 4: Hasil Prediksi
@@ -686,10 +696,13 @@ export default function StuntingPredictionSystem() {
                 ? 'bg-gradient-to-r from-green-100 to-blue-100 border-green-300' 
                 : 'bg-gradient-to-r from-red-100 to-orange-100 border-red-300'
             }`}>
-              <div className={`text-2xl sm:text-3xl font-bold ${
+              <div className={`text-2xl sm:text-3xl font-bold flex items-center justify-center gap-3 ${
                 getOverallStatus() === 'STATUS NORMAL' ? 'text-green-700' : 'text-red-700'
               }`}>
-                {getOverallStatus() === 'STATUS NORMAL' ? '✅' : '⚠️'} {getOverallStatus()}
+                <div className={`w-6 h-6 rounded-full ${
+                  getOverallStatus() === 'STATUS NORMAL' ? 'bg-green-500' : 'bg-red-500'
+                }`}></div>
+                {getOverallStatus()}
               </div>
             </div>
 
@@ -772,8 +785,8 @@ export default function StuntingPredictionSystem() {
             {prediction.message && (
               <div className="mb-6 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-300 shadow-lg">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="p-2 bg-yellow-100 rounded-lg flex-shrink-0">
-                    💡
+                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                   </div>
                   <div className="flex-grow">
                     <h4 className="font-bold text-yellow-800 text-lg mb-2">Rekomendasi & Saran</h4>
@@ -820,7 +833,7 @@ export default function StuntingPredictionSystem() {
                 onClick={handleResetToStart}
                 className="px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-bold text-lg hover:from-purple-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-300 shadow-lg"
               >
-                🔄 Kembali ke Awal
+                Kembali ke Awal
               </button>
             </div>
           </div>
