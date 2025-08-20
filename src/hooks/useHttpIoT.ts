@@ -153,20 +153,33 @@ export function useHttpIoT(options: UseHttpIoTOptions) {
       return;
     }
     
-    updateStatus({ isConnecting: true });
+    updateStatus({ isConnecting: true, error: undefined });
     
-    // Check backend connectivity first
+    // Check backend connectivity and device validity first
     fetch('/api/connection?deviceId=' + deviceId)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          // If response not ok, parse the error message
+          return response.json().then(errorResult => {
+            throw new Error(errorResult.message || `HTTP ${response.status}: Device validation failed`);
+          });
+        }
+        return response.json();
+      })
       .then(result => {
-        if (result.success && result.data.backendStatus === 'healthy') {
+        if (result.success && result.data.backendStatus === 'healthy' && result.data.deviceExists) {
+          log('✅ Device validation successful, starting polling...');
           startPolling();
-        } else {
+        } else if (result.data.backendStatus !== 'healthy') {
           throw new Error('Backend server is not healthy');
+        } else if (!result.data.deviceExists) {
+          throw new Error(`Device '${deviceId}' tidak terdaftar di sistem`);
+        } else {
+          throw new Error('Connection validation failed');
         }
       })
       .catch(error => {
-        log('Connection failed:', error);
+        log('❌ Connection failed:', error);
         updateStatus({ 
           isConnecting: false, 
           error: error instanceof Error ? error.message : 'Connection failed' 

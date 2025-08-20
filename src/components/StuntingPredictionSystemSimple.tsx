@@ -361,6 +361,24 @@ export default function StuntingPredictionSystem() {
               )}
             </div>
 
+            {/* Error Message Display */}
+            {status.error && (
+              <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300 rounded-lg">
+                <div className="flex items-start gap-3 text-red-800">
+                  <div className="w-5 h-5 border-2 border-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                  </div>
+                  <div className="flex-grow">
+                    <p className="font-semibold text-red-900 mb-1">Koneksi Gagal</p>
+                    <p className="text-sm leading-relaxed">{status.error}</p>
+                    <p className="text-xs mt-2 text-red-600">
+                      Pastikan Device ID benar dan terdaftar di sistem backend.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-6">
               <button
                 onClick={handleConnect}
@@ -375,7 +393,7 @@ export default function StuntingPredictionSystem() {
                 disabled={!status.isConnected}
                 className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold text-sm sm:text-base transition-colors shadow-md"
               >
-                📵 Putuskan
+                Putuskan
               </button>
               
               <button
